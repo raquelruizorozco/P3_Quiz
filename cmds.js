@@ -148,7 +148,7 @@ exports.playCmd = rl =>
                 {
                     log("CORRECTO", 'green');
                     score++;
-                    log('Tu puntuación es ');
+                    log(`Tu puntuacion es ${colorize(score,'green')}`);
 
                     for (let i=0; i< toBeResolved.length; i++){
                         if(toBeResolved[i] == id){
@@ -160,7 +160,7 @@ exports.playCmd = rl =>
             else
                 {
                     log("INCORRECTO", 'red');
-                    log('Tu puntuación es ');
+                    log(`Tu puntuacion es  ${colorize(score,'green')}`);
                     rl.prompt();
                 }
             })
