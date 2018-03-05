@@ -160,6 +160,8 @@ exports.playCmd = rl =>
             else
                 {
                     log("INCORRECTO", 'red');
+
+                    log("Fin del juego", 'red');
                     log(`Tu puntuacion es  ${colorize(score,'green')}`);
                     rl.prompt();
                 }
