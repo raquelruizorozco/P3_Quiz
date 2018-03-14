@@ -2,98 +2,38 @@
  * Created by raquel.ruiz.orozco on 28/02/18.
  */
 
-const fs = require("fs");
-
-const DB_FILENAME = "quizzes.json";
-
 //Modelo de datos
-let quizzes = [
-    {
-        question: "Capital de Italia",
-        answer: "Roma"
-    },
-    {
-        question: "Capital de Francia",
-        answer: "París"
-    },
-    {
-        question: "Capital de España",
-        answer: "Madrid"
-    },
-    {
-        question: "Capital de Portugal",
-        answer: "Lisboa"
-    }
-];
 
-const load = () => {
+const Sequelize = require('sequelize'); //Carga el módulo Sequelize
+const sequelize = new Sequelize("sqlite:quizzes.sqlite", {logging: false}); //Genero una instancia de Sequelize para acceder a una base de datos localizada en el fichero quizzes.sqlite
 
-    fs.readFile(DB_FILENAME, (err, data) => {
-        if(err){
-
-            if (err.code === "ENOENT") {
-                save();
-                return;
-            }
-            throw err;
-        }
-        let json = JSON.parse(data);
-    if (json) {
-        quizzes = json;
+sequelize.define('quiz', {		//Defino el quiz, que es un modelo de datos
+    question: {
+        type: Sequelize.STRING,
+        unique: {msg: "Ya no existe esta pregunta"}, //Cada pregunta es unica, si se repite me sale ese mensaje
+        validate: {notEmpty: {msg: "La pregunta no puede estar vacía"}} //No voy a permitir que se creen preguntas vacias
+    },
+    answer: {
+        type: Sequelize.STRING,
+        validate: {notEmpty: {msg: "La respuesta no puede estar vacía"}}
     }
 });
-};
 
-const save = () => {
-    fs.writeFile(DB_FILENAME,
-    JSON.stringify(quizzes),
-        err => {
-        if(err) throw err;
-    });
-};
+sequelize.sync()  //Sincronizar es mirar si en la base de datos tengo las tablas que necesito
+    .then(() => sequelize.models.quiz.count())	//Cuenta cuantos quizzes hay en model
+.then(count => { //toma como parametro num quiz
+    if (!count) { //Si hay cero quizzes
+    return sequelize.models.quiz.bulkCreate([   //para crear varias quizzes
+        { question: "Capital de Italia", answer: "Roma" },
+        { question: "Capital de Francia", answer: "París" },
+        { question: "Capital de España", answer: "Madrid" },
+        { question: "Capital de Portugal", answer: "Lisboa" }
+    ]);
+}
+})
+.catch(error => {
+    console.log(error);
+});
 
-exports.count = () => quizzes.length;
+module.exports = sequelize;
 
-exports.add = (question, answer) => {
-    quizzes.push({
-        question : (question || "").trim(),
-        answer :(answer || "").trim()
-    });
-    save();
-};
-
-exports.update = (id,question,answer) =>{
-    const quiz =quizzes[id];
-    if (typeof quiz === "undefined"){
-        throw new Error (`El valor del parámetro id no es válido.`);
-    }
-    quizzes.splice(id, 1,{
-        question : (question || "").trim(),
-        answer :(answer || "").trim()
-    });
-    save();
-
-
-};
-
-exports.getAll = () => JSON.parse(JSON.stringify(quizzes));
-
-
-exports.getByIndex = id => {
-    const quiz = quizzes[id];
-    if (typeof quiz === "undefined"){
-        throw new Error(`El valor del parámetro id no es válido.`);
-    }
-    return JSON.parse(JSON.stringify(quiz));
-};
-
-exports.deleteByIndex = id => {
-    const quiz = quizzes[id];
-    if (typeof quiz === "undefined"){
-        throw new Error(`El valor del parámetro id no es válido.`);
-    }
-    quizzes.splice(id,1);
-    save();
-};
-
-load();
