@@ -160,31 +160,49 @@ exports.editCmd = (rl,id) => {
 });
 }
 
-exports.testCmd = (rl, id) => {
-    if (typeof id === "undefined"){
-        errorlog("Falta el parámetro id.");
-        rl.prompt();
-    } else {
-        try{
-            const quiz = model.getByIndex(id);
-
-            rl.question(colorize(`Pregunta: ${quiz.question} `, 'red'), respuesta => {
-                if( respuesta.toLowerCase().trim() === quiz.answer.toLowerCase().trim()){
-                log("CORRECTO",'green');
-            }else{
-                log("INCORRECTO",'red');
-            }
-            rl.prompt();
-        });
-        }catch(error){
-            errorlog(error.message);
-            rl.prompt();
-        }
+exports.testCmd = (rl, id) =>
+{
+    validateId(id)
+        .then(id => models.quiz.findById(id)
+) //Del modelo de datos voy al modelo quiz y busco un quiz por id
+.
+    then(quiz => {
+        if(
+    !quiz
+)
+    {
+        throw new Error(`No existe un quiz asociado al id=${id}.`);
     }
 
 
+    return makeQuestion(rl, quiz.question)
+        .then(answer => {
+        if(answer.toLowerCase().trim() === quiz.answer.toLowerCase().trim()
+)
+    {
+        log("CORRECTO", 'green');
+    }
 
-};
+else
+    {
+        log("INCORRECTO", 'red');
+    }
+
+})
+})
+.
+    catch(
+        e => {
+        console.log("error: " + e);
+    rl.prompt();
+})
+.
+    then(() => {
+        rl.prompt();
+})
+    ;
+}
+
 
 exports.playCmd = rl => {
     let score = 0;
